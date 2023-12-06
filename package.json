@@ -1,0 +1,25 @@
+{
+  "name": "composite-weak-map",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run -s demo",
+    "build": "npm run -s build-lib && npm run -s copy-html",
+    "build-lib": "tsc",
+    "copy-html": "cp src/index.html dist/index.html",
+    "demo": "npm run -s build && npm run -s serve",
+    "serve": "http-server dist/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "gh:dgp1130/composite-weak-map"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "typescript": "^5.3.2"
+  }
+}
