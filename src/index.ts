@@ -366,7 +366,7 @@ export class CompositeWeakMap<
         // registrations for that reference. Therefore each composite key needs
         // its own registry so one unregistration doesn't break another.
         const finalizationRegistry = new FinalizationRegistry<FinalizationData>(
-            ({ partialKeyRef, partialKeyPos, unregisterPartialKeyRefs }) => {
+            ({ partialKeyRef, partialKeyPos, unregisterToken }) => {
                 const partialKey = partialKeyRef.deref();
                 if (!partialKey) return; // Key was already cleaned up.
 
@@ -380,27 +380,7 @@ export class CompositeWeakMap<
                 // position.
                 compositeKeys.delete(compositeKey);
 
-                // We had to register *all* the other partial keys because we
-                // didn't know which one would be reclaimed first. However,
-                // since this registry callback was invoked, at least one
-                // partial key has already been reclaimed and we've now cleaned
-                // up the extra memory. As a result, we no longer care about any
-                // other partial keys used for this composite key and should
-                // unregister those callbacks.
-                const partialKeysToUnregister = unregisterPartialKeyRefs
-                    .map((partialKeyRef) => partialKeyRef.deref())
-                    .filter((key): key is PartialKey => !!key)
-                ;
-                for (const partialKeyToUnregister of partialKeysToUnregister) {
-                    // This unregister is kind of unnecessary because we remove
-                    // `finalizationRegistry` from the `registries` set
-                    // immediately afterwards. Doing so makes it inaccessible to
-                    // JavaScript and prevents the callback from being invoked.
-                    // This has the same effect as manually unregistering each
-                    // partial key.
-                    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry#notes_on_cleanup_callbacks
-                    finalizationRegistry.unregister(partialKeyToUnregister);
-                }
+                finalizationRegistry.unregister(unregisterToken);
                 this.registries.delete(finalizationRegistry);
             },
         );
@@ -422,21 +402,25 @@ export class CompositeWeakMap<
             const otherPartialKeys = partialKeys
                 .filter((otherPartialKey) => partialKey !== otherPartialKey);
 
+            // Register finalization callbacks for every other partial key. If
+            // any *one* of them fall out of scope, then the composite key we
+            // just added can never be read and is effectively garbage. We need
+            // to drop the composite key in that case.
+            //
+            // Since any partial key being reclaimed invalidates the composite
+            // key we need to listen to all of them, but only care about the
+            // first one reclaimed. Therefore we tie them all together with a
+            // single `unregisterToken`. When the first partial key is reclaimed
+            // and the composite key is freed, all other finalization callbacks
+            // which would clean up the same partial key -> composite key edge
+            // are unregistered via this token.
+            const unregisterToken = {};
             for (const otherPartialKey of otherPartialKeys) {
-                // All partial keys except the partial key we want to clean up
-                // and the partial key we're creating the finalization registry
-                // for. Once `otherPartialKey` is garbage collected, we no
-                // longer care if any other partial keys are GC'd, so we want to
-                // unregister them.
-                const unregisterPartialKeyRefs = otherPartialKeys
-                    .filter((partialKey) => otherPartialKey !== partialKey)
-                    .map((partialKey) => new WeakRef(partialKey));
-
-                finalizationRegistry.register(otherPartialKey, {
-                    partialKeyRef,
-                    partialKeyPos,
-                    unregisterPartialKeyRefs,
-                });
+                finalizationRegistry.register(
+                    otherPartialKey,
+                    { partialKeyRef, partialKeyPos, unregisterToken },
+                    unregisterToken,
+                );
             }
         }
     }
@@ -449,9 +433,23 @@ export class CompositeWeakMap<
 }
 
 interface FinalizationData {
+    /**
+     * The partial key with a reference to a now-inaccessible composite key
+     * which should be cleaned up.
+     */
     partialKeyRef: WeakRef<PartialKey>,
+
+    /**
+     * The position of the partial key in the composite key which needs to be
+     * cleaned up.
+     */
     partialKeyPos: PartialKeyPos,
-    unregisterPartialKeyRefs: Array<WeakRef<PartialKey>>;
+
+    /**
+     * A token to unregister all other {@link FinalizationRegistry}
+     * registrations which would clear this data.
+     */
+    unregisterToken: {},
 }
 
 function createPartialKeyPosition({ index, size }: {
