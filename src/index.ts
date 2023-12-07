@@ -329,18 +329,35 @@ export class CompositeWeakMap<
 
         // Filter to handles where each key is used in the correct order and has
         // the right number of total keys.
-        const [ firstPartialKeyCandidates, ...remainingPartialKeysCandidates ] =
-            compositeKeyHandles.map((partialKeyPosMap, keyIndex) => {
-                const partialKeyPos = createPartialKeyPosition({
-                    index: keyIndex,
-                    size: partialKeys.length,
-                });
-
-                return partialKeyPosMap.get(partialKeyPos)
-                        ?? new Set<CompositeKey>();
+        const partialKeysCandidates = compositeKeyHandles.map((partialKeyPosMap, keyIndex) => {
+            const partialKeyPos = createPartialKeyPosition({
+                index: keyIndex,
+                size: partialKeys.length,
             });
 
-        return Array.from(firstPartialKeyCandidates.values())
+            return partialKeyPosMap.get(partialKeyPos)
+                    ?? new Set<CompositeKey>();
+        });
+
+        // To find the composite key we need to compare all composite key
+        // candidates to find the one shared reference between all partial keys.
+        // To do this, we pick a partial key, and use its candidates knowing
+        // that one of them must be the correct composite key. We then check
+        // each one against all the other candidates from each partial key. Once
+        // we find a composite key which is present in the candidates from each
+        // partial key, we know we have found the correct composite key.
+        //
+        // The initial partial key chosen is arbitrary and doesn't matter.
+        // However, as an optimization we look for the partial key with the
+        // fewest composite key candidates. This is most optimal because it
+        // requires the fewest outer loop iterations.
+        const fewestPartialKeyCandidates = minimum(
+            partialKeysCandidates,
+            (partialKeyCandidates) => partialKeyCandidates.size,
+        );
+        const remainingPartialKeysCandidates =
+            remove(partialKeysCandidates, fewestPartialKeyCandidates);
+        return Array.from(fewestPartialKeyCandidates.values())
             .find((candidateCompositeKey) => {
                 return remainingPartialKeysCandidates
                     .every((otherPartialKeyCandidates) => {
@@ -462,6 +479,40 @@ function createPartialKeyPosition({ index, size }: {
 
 function assertKeysValid(keys: readonly PartialKey[]): void {
     if (keys.length === 0) throw new Error('At least one key is required.');
+}
+
+/**
+ * Finds and returns the object in the array with the minimum value as returned
+ * by the `selector` function. If multiple objects have the same value, the
+ * first one will be returned.
+ */
+function minimum<Value>(array: Value[], selector: (value: Value) => number):
+        Value {
+    if (array.length === 0) {
+        throw new Error('Cannot get the minimum of an empty array.');
+    }
+
+    const [ first, ...rest ] = array;
+    let minimum = first;
+    let minimumCount = selector(first);
+
+    for (const value of rest) {
+        const count = selector(value);
+        if (count < minimumCount) {
+            minimumCount = count;
+            minimum = value;
+        }
+    }
+
+    return minimum;
+}
+
+/** Removes the given value from the input array. */
+function remove<Value>(array: Value[], value: Value): Value[] {
+    const index = array.findIndex((v) => v === value);
+    if (index === -1) throw new Error('Value to extract not in array.');
+
+    return array.splice(index, 1);
 }
 
 // Test cases
