@@ -6,11 +6,15 @@
   "type": "module",
   "scripts": {
     "start": "npm run -s demo",
-    "build": "npm run -s build-lib && npm run -s copy-html",
-    "build-lib": "tsc",
+    "build": "npm run -s clean && npm run -s build-lib && npm run -s copy-html",
+    "build-lib": "tsc -p tsconfig.lib.json",
     "copy-html": "cp src/index.html dist/index.html",
     "demo": "npm run -s build && npm run -s serve",
-    "serve": "http-server dist/"
+    "serve": "http-server dist/",
+    "test": "npm run -s clean && npm run -s build-tests && npm run -s run-tests",
+    "build-tests": "tsc -p tsconfig.test.json",
+    "run-tests": "node --test dist/**.test.js",
+    "clean": "rm -rf dist/"
   },
   "repository": {
     "type": "git",
@@ -20,6 +24,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^20.10.4",
     "http-server": "^14.1.1",
     "typescript": "^5.3.2"
   }
