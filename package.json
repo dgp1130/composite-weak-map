@@ -13,7 +13,7 @@
     "serve": "http-server dist/",
     "test": "npm run -s clean && npm run -s build-tests && npm run -s run-tests",
     "build-tests": "tsc -p tsconfig.test.json",
-    "run-tests": "node --test dist/**.test.js",
+    "run-tests": "node --test --test-reporter=spec dist/**.test.js",
     "clean": "rm -rf dist/"
   },
   "repository": {
