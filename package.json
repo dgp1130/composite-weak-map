@@ -19,10 +19,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "gh:dgp1130/composite-weak-map"
+    "url": "https://github.com/dgp1130/composite-weak-map.git"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.10.4",
