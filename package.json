@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "npm run -s demo",
     "build": "npm run -s build-lib && npm run -s copy-html",
