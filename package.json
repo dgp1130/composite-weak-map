@@ -21,7 +21,7 @@
     "type": "git",
     "url": "https://github.com/dgp1130/composite-weak-map.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.10.4",
     "http-server": "^14.1.1",
