@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import { CompositeWeakMap } from './index.js';
+import { CompositeWeakMap } from './composite-weak-map.js';
 
 describe('index', () => {
     describe('CompositeWeakMap', () => {
