@@ -6,10 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "npm run -s demo",
-    "build": "npm run -s clean && npm run -s build-lib && npm run -s copy-html",
+    "build": "npm run -s clean && npm run -s build-lib",
     "build-lib": "tsc -p tsconfig.lib.json",
+    "demo": "npm run -s build-demo && npm run -s serve",
+    "build-demo": "npm run -s clean && npm run -s build-lib && npm run -s copy-html",
     "copy-html": "cp src/index.html dist/index.html",
-    "demo": "npm run -s build && npm run -s serve",
     "serve": "http-server dist/",
     "test": "npm run -s clean && npm run -s build-tests && npm run -s run-tests",
     "build-tests": "tsc -p tsconfig.test.json",
