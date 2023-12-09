@@ -258,7 +258,7 @@ export class CompositeWeakMap<
      * >         reachable by JavaScript code.
      */
     private readonly registries =
-        new Set<FinalizationRegistry<FinalizationData>>();
+        new WeakMap<CompositeKey, FinalizationRegistry<FinalizationData>>();
 
     /**
      * Looks up the given keys in the map and returns the result if found, or
@@ -398,10 +398,9 @@ export class CompositeWeakMap<
                 compositeKeys.delete(compositeKey);
 
                 finalizationRegistry.unregister(unregisterToken);
-                this.registries.delete(finalizationRegistry);
+                this.registries.delete(compositeKey);
             },
         );
-        this.registries.add(finalizationRegistry);
 
         const size = partialKeys.length;
         for (const [ index, partialKey ] of partialKeys.entries()) {
@@ -433,6 +432,10 @@ export class CompositeWeakMap<
             // are unregistered via this token.
             const unregisterToken = {};
             for (const otherPartialKey of otherPartialKeys) {
+                // Add the registry to the list when `register` is called. Makes
+                // sure we don't accidentally decouple these two actions.
+                this.registries.set(compositeKey, finalizationRegistry);
+
                 finalizationRegistry.register(
                     otherPartialKey,
                     { partialKeyRef, partialKeyPos, unregisterToken },
