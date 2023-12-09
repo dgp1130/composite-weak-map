@@ -10,6 +10,9 @@
     "test": "npm run -s clean && npm run -s build-tests && npm run -s run-tests",
     "build-tests": "tsc -p tsconfig.test.json",
     "run-tests": "node --test --test-reporter=spec dist/**.test.js",
+    "leak-test": "npm run -s clean && npm run -s build-tests && npm run -s run-leak-test --",
+    "run-leak-test": "web-test-runner dist/leak.test.js",
+    "debug-leak-test": "npm run -s leak-test -- --watch",
     "clean": "rm -rf dist/"
   },
   "repository": {
@@ -18,7 +21,13 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@airbnb/node-memwatch": "^2.0.0",
+    "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.4",
+    "@web/test-runner": "^0.18.0",
+    "@web/test-runner-playwright": "^0.11.0",
+    "@web/test-runner-puppeteer": "^0.15.0",
     "typescript": "^5.3.2"
   }
 }
