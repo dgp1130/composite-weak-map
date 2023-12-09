@@ -313,6 +313,10 @@ export class CompositeWeakMap<
         const existingCompositeKey = this.getCompositeKey(partialKeys);
         if (existingCompositeKey) return existingCompositeKey;
 
+        return this.createCompositeKey();
+    }
+
+    protected createCompositeKey(): CompositeKey {
         return {} as CompositeKey;
     }
 
