@@ -413,6 +413,11 @@ export class CompositeWeakMap<
         // its own registry so one unregistration doesn't break another.
         const finalizationRegistry = new FinalizationRegistry<FinalizationData>(
             ({ partialKeyRef, partialKeyPos, unregisterToken }) => {
+                // Not strictly necessary, but likely makes `resultMap` drop its
+                // weak reference on `compositeKey` sooner and helps reclaim the
+                // associated value.
+                this.resultMap.delete(compositeKey);
+
                 const partialKey = partialKeyRef.deref();
                 if (!partialKey) return; // Key was already cleaned up.
 
