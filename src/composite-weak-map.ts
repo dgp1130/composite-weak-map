@@ -302,6 +302,7 @@ export class CompositeWeakMap<
         const compositeKey = this.getCompositeKey(partialKeys);
         if (!compositeKey) return false;
         const found = this.resultMap.delete(compositeKey);
+        this.registries.delete(compositeKey);
         if (!found) return false; // Nothing to clean up.
 
         // Clean up partial key references on the deleted composite key.
