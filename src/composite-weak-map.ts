@@ -430,6 +430,17 @@ export class CompositeWeakMap<
                 // Delete the composite key reference from this partial key
                 // position.
                 compositeKeys.delete(compositeKey);
+                if (compositeKeys.size === 0) {
+                    // If the composite keys `Set` is empty, no reason to retain
+                    // it.
+                    partialKeyPosMap.delete(partialKeyPos);
+                }
+
+                if (partialKeyPosMap.size === 0) {
+                    // If the partial key position map is empty, no reason to
+                    // retain it.
+                    this.compositeKeyMap.delete(partialKey);
+                }
 
                 finalizationRegistry.unregister(unregisterToken);
                 this.registries.delete(compositeKey);
