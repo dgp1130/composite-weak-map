@@ -301,7 +301,35 @@ export class CompositeWeakMap<
 
         const compositeKey = this.getCompositeKey(partialKeys);
         if (!compositeKey) return false;
-        return this.resultMap.delete(compositeKey);
+        const found = this.resultMap.delete(compositeKey);
+        if (!found) return false; // Nothing to clean up.
+
+        // Clean up partial key references on the deleted composite key.
+        const size = partialKeys.length;
+        for (const [ index, partialKey ] of partialKeys.entries()) {
+            const partialKeyPosMap = this.compositeKeyMap.get(partialKey);
+            if (!partialKeyPosMap) continue;
+
+            const partialKeyPos = createPartialKeyPosition({ index, size });
+            const compositeKeySet = partialKeyPosMap.get(partialKeyPos);
+            if (!compositeKeySet) continue;
+
+            compositeKeySet.delete(compositeKey);
+
+            // Delete an empty `compositeKeySet` if this was the last composite
+            // key it held.
+            if (compositeKeySet.size === 0) {
+                partialKeyPosMap.delete(partialKeyPos);
+            }
+
+            // Delete an empty `partialKeyPosMap` if this was the last composite
+            // key it referenced.
+            if (partialKeyPosMap.size === 0) {
+                this.compositeKeyMap.delete(partialKey);
+            }
+        }
+
+        return true;
     }
 
     /**
