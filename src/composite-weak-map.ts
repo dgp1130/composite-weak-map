@@ -7,7 +7,7 @@ type PartialKey = object;
  * A single reference which is the composite of multiple other references used
  * as keys.
  */
-interface CompositeKey {
+export interface CompositeKey {
     /** Just here for better typing. */
     readonly __brand?: 'composite-key';
 }

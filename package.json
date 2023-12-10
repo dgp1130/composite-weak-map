@@ -7,13 +7,14 @@
   "scripts": {
     "build": "npm run -s clean && npm run -s build-lib",
     "build-lib": "tsc -p tsconfig.lib.json",
-    "test": "npm run -s clean && npm run -s build-tests && npm run -s run-tests",
+    "test": "npm run -s clean && npm run -s build-tests && npm run -s run-tests && npm run -s leak-test",
     "build-tests": "tsc -p tsconfig.test.json",
     "run-tests": "node --test --test-reporter=spec dist/**.test.js",
     "leak-test": "npm run -s clean && npm run -s build-tests && npm run -s run-leak-test --",
-    "run-leak-test": "web-test-runner dist/leak.test.js",
+    "run-leak-test": "web-test-runner dist/leak.wtr.js",
     "debug-leak-test": "npm run -s leak-test -- --watch",
-    "clean": "rm -rf dist/"
+    "clean": "rm -rf dist/",
+    "playwright": "playwright"
   },
   "repository": {
     "type": "git",

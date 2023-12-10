@@ -33,6 +33,10 @@ jobs:
     - name: Install
       run: npm ci
 
+    # Install Playwright browser.
+    - name: Install Playwright
+      run: npm run -s playwright install
+
     # Run tests.
     - name: Test
       run: npm test
