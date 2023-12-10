@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.base.json",
-  "include": ["./src/**/*.test.ts"],
+  "include": ["./src/**/*.test.ts", "./src/**/*.wtr.ts"],
   "compilerOptions": {
     "types": ["mocha", "node"],
   }
